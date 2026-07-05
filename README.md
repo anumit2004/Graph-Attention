@@ -1,168 +1,109 @@
 # Graph Attention Networks (GAT) Implementation
 
-This repository contains two Jupyter notebooks demonstrating the implementation and understanding of Graph Attention Networks (GAT), a powerful deep learning architecture for graph-structured data.
+This repository provides three Jupyter notebooks that move from a from-scratch NumPy implementation to practical PyTorch GAT training on citation datasets.
 
----
+## Notebooks
 
-## 📚 Notebooks Overview
+### 1) Numpy_Single_Head_GAT.ipynb
 
-### 1. **Numpy_Single_Head_GAT.ipynb**
+Purpose: Learn the core GAT math with a minimal, framework-light implementation.
 
-**Purpose**: Understand GAT from scratch using pure NumPy implementation.
+Includes:
+- Single-head GAT pipeline in NumPy
+- Custom `softmax` and `Leaky_RELU`
+- `custom_GAT()` demo on a small hand-crafted graph
+- Step-by-step attention flow:
+  1. Linear projection
+  2. Attention score computation
+  3. Softmax normalization
+  4. Neighbor aggregation
 
-**What it consists of:**
-- Complete mathematical explanation of the GAT mechanism
-- Custom Single-Head GAT implementation using only NumPy (no deep learning frameworks)
-- Step-by-step implementation of core components:
-  - **Linear Transformation**: Feature transformation using weight matrix `W`
-  - **Attention Coefficient Calculation**: Compute attention scores `e_ij` between node `i` and its neighbors `j`
-  - **Softmax Normalization**: Normalize attention scores using softmax to get `α_ij`
-  - **Feature Aggregation**: Aggregate neighbor features weighted by attention coefficients
-- Custom implementations of:
-  - `softmax()` function
-  - `Leaky_ReLU()` activation function
-  - `custom_GAT()` function demonstrating the complete workflow
+Best for:
+- Understanding GAT internals
+- Debugging intuition on tiny graphs
 
-**Key Features:**
-- Educational focus on understanding the underlying mathematics
-- No external dependencies beyond NumPy
-- Visual understanding of how attention works in graph neural networks
-- Practical example with a simple 4-node graph
+### 2) Single_Head_using_Pytorch.ipynb
 
-**Basic Application:**
-- Learning the fundamentals of graph attention mechanisms
-- Understanding how attention weights are computed and applied in graph neural networks
-- Foundation for building more complex GAT variants
+Purpose: Build and train a single-head GAT in PyTorch.
 
----
+Includes:
+- `_sparse_softmax()` for edge-wise normalization
+- `GAT_Single_Head` layer
+- `SingleHeadGAT_Classifier` (2-layer model)
+- Training + evaluation on Planetoid datasets:
+  - Cora
+  - CiteSeer
+  - PubMed
+- Loss/accuracy plots across epochs
 
-### 2. **Single_Head_&__Multi_Head_&Full_GAT.ipynb**
+Best for:
+- Practical single-head GAT training
+- Baseline results on benchmark citation graphs
 
-**Purpose**: Implement GAT using PyTorch with progression from single-head to multi-head to full GAT architecture.
+### 3) Multihead_GAT.ipynb
 
-**What it consists of:**
-- Complete mathematical explanation of GAT mechanisms
-- **Single-Head GAT Implementation** (PyTorch):
-  - Basic attention mechanism using PyTorch
-  - Sparse softmax implementation for efficient computation
-  - Attention coefficient calculation with LeakyReLU activation
-  
-- **Multi-Head Attention** (PyTorch):
-  - Parallel attention heads for richer feature representations
-  - Concatenation of multiple attention head outputs
-  - Improved learning capacity through ensemble of attention mechanisms
+Purpose: Extend to multi-head attention and compare concat vs average head aggregation.
 
-- **Full GAT Implementation**:
-  - Complete graph attention layer combining all techniques
-  - Training on graph datasets
-  - Performance evaluation and visualization
+Includes:
+- `GAT_Multihead_Attention` layer
+- Head combination modes:
+  - Concatenation for hidden layers
+  - Averaging for output layer
+- `MultiHeadGAT_Classifier`
+- Training + evaluation on:
+  - Cora
+  - CiteSeer
+  - PubMed
 
-**Key Components:**
-- `_sparse_softmax()` function: Efficient sparse softmax for graph operations
-- Multi-head attention modules
-- Full layer implementations with PyTorch `nn.Module`
-- Training loops and evaluation metrics
+Best for:
+- Multi-head GAT experiments
+- Stronger representations via multiple attention heads
 
-**Key Features:**
-- Production-ready PyTorch implementation
-- Support for different attention head configurations
-- Efficient computation using sparse operations
-- Scalable to larger graph datasets
-
-**Basic Application:**
-- Node classification on graph-structured data
-- Learning node representations with attention mechanisms
-- Building deeper GNN architectures
-- Fine-tuning for specific graph learning tasks
-- Transfer learning on graph datasets
-
----
-
-## 🧮 Mathematical Foundation
-
-Both notebooks implement the following GAT computation:
+## Core GAT Equations
 
 For each node $i$:
 
-1. **Linear Transformation**: $h_i = Wx_i$
+1. Linear transform: $h_i = W x_i$
+2. Attention score: $e_{ij} = \text{LeakyReLU}(a^T[h_i \Vert h_j])$
+3. Normalize over neighbors:
+   $$
+   \alpha_{ij} = \frac{\exp(e_{ij})}{\sum_{k \in \mathcal{N}(i)} \exp(e_{ik})}
+   $$
+4. Aggregate:
+   $$
+   h'_i = \sum_{j \in \mathcal{N}(i)} \alpha_{ij} h_j
+   $$
 
-2. **Attention Score**: $e_{ij} = \text{LeakyReLU}(a^T[h_i || h_j])$
+Where $\mathcal{N}(i)$ includes neighbors (and usually self-loop), and $\Vert$ means concatenation.
 
-3. **Normalization**: $\alpha_{ij} = \frac{\exp(e_{ij})}{\sum_{k \in \mathcal{N}_i} \exp(e_{ik})}$
+## Requirements
 
-4. **Aggregation**: $h_i' = \sum_{j \in \mathcal{N}_i} \alpha_{ij} h_j$
-
-Where:
-- $W$ is the weight matrix for linear transformation
-- $a^T$ is the attention mechanism vector
-- $\mathcal{N}_i$ is the set of neighbors of node $i$ (including self-loops)
-- $||$ denotes concatenation
-- $\alpha_{ij}$ represents the attention weight from node $j$ to node $i$
-
----
-
-## 🎯 Use Cases & Applications
-
-### When to use which notebook:
-
-- **Numpy_Single_Head_GAT.ipynb**: 
-  - Understanding GAT theory and mechanics
-  - Educational purposes and tutorials
-  - Debugging and understanding attention flows
-  - Small-scale graph problems
-
-- **Single_Head_&__Multi_Head_&Full_GAT.ipynb**:
-  - Real-world graph datasets
-  - Production implementations
-  - High-performance requirements
-  - Complex graph learning tasks
-
-### Real-world Applications:
-
-1. **Node Classification**: Predicting node labels (e.g., paper categories in citation networks)
-2. **Graph Classification**: Classifying entire graphs
-3. **Link Prediction**: Predicting missing edges in networks
-4. **Social Network Analysis**: Understanding influence and connections
-5. **Molecular Graphs**: Predicting molecular properties
-6. **Knowledge Graphs**: Reasoning and knowledge completion
-7. **Recommendation Systems**: Learning user-item interactions with attention
-
----
-
-## ⚙️ Requirements
-
-### For Numpy_Single_Head_GAT.ipynb:
-- NumPy
 - Python 3.x
-
-### For Single_Head_&__Multi_Head_&Full_GAT.ipynb:
+- NumPy
 - PyTorch
-- NumPy
-- Python 3.x
+- torch-geometric
+- matplotlib
 
----
+Install core packages:
 
-## 🚀 Getting Started
+```bash
+pip install numpy torch matplotlib torch_geometric
+```
 
-1. Open either notebook in Jupyter/JupyterLab
-2. Run cells sequentially to understand the implementation
-3. Modify hyperparameters to experiment with different configurations
-4. Apply the concepts to your own graph datasets
+## How To Run
 
----
+1. Open a notebook in Jupyter/Colab/VS Code notebooks.
+2. Run cells top-to-bottom.
+3. For training sections, keep internet access enabled for dataset download (Planetoid).
+4. Tune epochs, dropout, number of heads, and learning rate for experiments.
 
-## 📖 References
+## Suggested Learning Order
 
-Graph Attention Networks are based on the paper:
-- Veličković et al. (2017): "Graph Attention Networks" - ICLR 2018
+1. `Numpy_Single_Head_GAT.ipynb`
+2. `Single_Head_using_Pytorch.ipynb`
+3. `Multihead_GAT.ipynb`
 
----
+## Reference
 
-## 📝 Notes
-
-- Both implementations follow the same mathematical principles
-- The NumPy version is ideal for educational purposes
-- The PyTorch version is optimized for practical applications
-- Multi-head attention improves learning by using multiple attention mechanisms in parallel
-- Sparse softmax operations make the PyTorch implementation scalable to larger graphs
+- Veličković et al., Graph Attention Networks, ICLR 2018.
 
